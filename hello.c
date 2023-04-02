@@ -76,8 +76,9 @@ static ssize_t device_write(struct file *filp, const char *buffer, size_t length
      * 
      * GFP_KERNEL is Get Free Page Kernel
      */
-    char *input = kzalloc(length, GFP_KERNEL);  /* For me, PAGE_SIZE is 4096 */
-    // char input[length];  
+    // kzalloc will freeze the system when piping a lot of data into it as in `dd if=/dev/zero | tr \\0 \0 | dd of=/dev/hello`
+    // char *input = kzalloc(length, GFP_KERNEL);  /* For me, PAGE_SIZE is 4096 */
+    char input[length];  
 
     // Copy *buffer from user space to kernel space
     if (copy_from_user(input, buffer, length))
@@ -89,7 +90,7 @@ static ssize_t device_write(struct file *filp, const char *buffer, size_t length
     printk(KERN_INFO "%s: Input (%ld): %s\n", MODULE_NAME, length, input);
 
     // Free Allocated Memory
-    kfree(input);
+    // kfree(input);
 
     // Return size of input
     return length;
