@@ -55,7 +55,7 @@ static struct file_operations fops = {
 // Called when attempting to read from an open device (e.g. cat /dev/mydevice)
 static ssize_t device_read(struct file *filp, char *buffer, size_t length, loff_t * offset) {
     char message[] = "Hello World!\n";
-    
+
     // Copy message[] from kernel space to user space
     if (copy_to_user(buffer, &message, sizeof message))
         return -EFAULT;
@@ -68,17 +68,17 @@ static ssize_t device_read(struct file *filp, char *buffer, size_t length, loff_
 
 // Called when attempting to write to an open device (e.g. echo "hi" > /dev/mydevice)
 static ssize_t device_write(struct file *filp, const char *buffer, size_t length, loff_t * offset) {
-    /* 
+    /*
      * kmalloc allocates physically continuous space, vmalloc allocates virtually continuous space.
      * vmalloc is recommended for when you need a large amount of buffer
      * kmalloc is recommended for when you only need less than a page of buffer
      * kmalloc is required when passing to/from hardware
-     * 
+     *
      * GFP_KERNEL is Get Free Page Kernel
      */
     // kzalloc will freeze the system when piping a lot of data into it as in `dd if=/dev/zero | tr \\0 \0 | dd of=/dev/hello`
     // char *input = kzalloc(length, GFP_KERNEL);  /* For me, PAGE_SIZE is 4096 */
-    char input[length];  
+    char input[length];
 
     // Copy *buffer from user space to kernel space
     if (copy_from_user(input, buffer, length))
@@ -103,7 +103,7 @@ static int device_open(struct inode *inode, struct file *file) {
 
 // Called when closing a device
 static int device_release(struct inode *inode, struct file *file) {
-	return 0;
+    return 0;
 }
 
 // Process event for device
