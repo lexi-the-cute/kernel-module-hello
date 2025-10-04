@@ -34,9 +34,9 @@
 
 // These are required for the kernel module to load
 MODULE_LICENSE("GPL");  /* Modules have to be GPL compatible to keep the kernel from being tainted */
-MODULE_AUTHOR("Alexis' Art");
+MODULE_AUTHOR("Fox");
 MODULE_DESCRIPTION("A sample kernel module");
-MODULE_VERSION("0.1");
+MODULE_VERSION("0.0.1");
 
 static int major;   /* Major number assigned to character device by system */
 static int minor;
@@ -78,7 +78,9 @@ static ssize_t device_write(struct file *filp, const char *buffer, size_t length
      */
     // kzalloc will freeze the system when piping a lot of data into it as in `dd if=/dev/zero | tr \\0 \0 | dd of=/dev/hello`
     // char *input = kzalloc(length, GFP_KERNEL);  /* For me, PAGE_SIZE is 4096 */
+    // C90 forbids variable length array. We can set to (2048-8) and call it a day or compile with C99
     char input[length];
+    //char input[2048-8];  // 2048-8
 
     // Copy *buffer from user space to kernel space
     if (copy_from_user(input, buffer, length))
@@ -107,7 +109,7 @@ static int device_release(struct inode *inode, struct file *file) {
 }
 
 // Process event for device
-static int dev_uevent(struct device* dev, struct kobj_uevent_env* env) {
+static int dev_uevent(const struct device* dev, struct kobj_uevent_env* env) {
     int result = add_uevent_var(env, "DEVMODE=%#o", 0666);
 
     if (result < 0)
@@ -135,7 +137,7 @@ static int __init initialize(void) {
     device_number = MKDEV(major, minor);  /* Datatype containing a character device major and minor number */
 
     // Create a struct class pointer for device_create calls
-    device_class = class_create(THIS_MODULE, DEVICE_NAME);
+    device_class = class_create(DEVICE_NAME);
     if (IS_ERR(device_class)) {
         printk(KERN_ALERT "Failed to create class pointer, %s, for module, %s. Error code is %ld\n", DEVICE_NAME, MODULE_NAME, PTR_ERR(device_class));
         unregister_chrdev(major, DEVICE_NAME);
