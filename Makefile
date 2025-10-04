@@ -1,9 +1,17 @@
-KERNEL_RELEASE ?= `uname -r`
-KERNEL_DIR ?= /usr/src/linux-headers-$(KERNEL_RELEASE)
-# CFLAGS= -std=c99
+KERNELRELEASE ?= $(shell uname -r)
+#INSTALL_MOD_DIR ?= updates
+KERNEL_DIR  ?= /lib/modules/${KERNELRELEASE}/build
+INSTALL_DIR ?= /lib/modules/${KERNELRELEASE}/updates #${INSTALL_MOD_DIR}
+EXTRA_CFLAGS += -I`pwd` -Wno-declaration-after-statement
 
-default:
-	$(MAKE) -C $(KERNEL_DIR) M=$$PWD
+obj-m += hello.o
+
+all:
+	make -C ${KERNEL_DIR} M=`pwd` modules
+
+install:
+	$(shell mkdir -p ${INSTALL_DIR})
+	make -C ${KERNEL_DIR} M=`pwd` modules_install
 
 clean:
-	$(MAKE) -C $(KERNEL_DIR) M=$$PWD clean
+	make -C ${KERNEL_DIR} M=`pwd` clean
